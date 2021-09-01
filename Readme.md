@@ -20,3 +20,16 @@ Copiei o arquivo `.env.example` e renomeie `.env`, nele informe os dados de conf
 - DB_PORT: Porta da base de dados que será utilizada pelo sistema;
 - DB_USER: Usuário de acesso ao banco de dados que será utilizado pelo sistema;
 - DB_PASSWORD: Senha de acesso ao banco de dados que será utilizado pelo sistema;
+
+Após essa configuração base, execute no terminal:
+`docker-compose up -d` e então será inicializado os serviços.
+
+## Portas
+
+Portas abertas para o host:
+- Laravel: 8000
+
+Portas na network:
+- Mysql: 3306
+- Nginx: 80
+- PHP-FPM: 9000
