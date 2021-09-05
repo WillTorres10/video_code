@@ -24,6 +24,11 @@ Copiei o arquivo `.env.example` e renomeie `.env`, nele informe os dados de conf
 Após essa configuração base, execute no terminal:
 `docker-compose up -d` e então será inicializado os serviços.
 
+## Executando Testes
+Para executar os testes, acessar o terminal o serviço catalog como comando `docker-compose exec catalog bash `, já dentro do container, execute o comando `vendor/bin/phpunit`. Pronto, os testes serão executados!
+
+OBS: Antes de realizar os testes, certifique-se que o serviço de banco de dados já está disponível para receber conexões.
+
 ## Portas
 
 Portas abertas para o host:

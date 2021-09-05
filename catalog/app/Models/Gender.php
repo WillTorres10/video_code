@@ -15,4 +15,11 @@ class Gender extends Model
     protected $fillable = ['name', 'is_active'];
 
     public $incrementing = false;
+
+    protected $dates = ['deleted_at'];
+
+    protected $casts = [
+        'id' => 'string',
+        'is_active' => 'boolean'
+    ];
 }

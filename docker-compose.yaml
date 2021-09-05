@@ -30,11 +30,11 @@ services:
     image: mysql:8
     volumes:
       - mysql:/var/lib/mysql
+      - ./.docker/mysql:/docker-entrypoint-initdb.d/
     networks:
       - video-code
     environment:
       - "MYSQL_ROOT_PASSWORD=${DB_PASSWORD}"
-      - "MYSQL_DATABASE=${DB_DATABASE}"
 
 
 networks:
