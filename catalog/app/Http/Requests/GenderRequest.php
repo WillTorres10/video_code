@@ -11,11 +11,28 @@ class GenderRequest extends FormRequest
         return true;
     }
 
-    public function rules()
+    private function postRules()
     {
         return [
-            'name' => ['required', 'string'],
+            'name' => ['required', 'string', 'max:255'],
             'is_active' => ['required', 'boolean']
         ];
+    }
+
+    private function putRules()
+    {
+        return [
+            'name' => ['nullable', 'string', 'max:255'],
+            'is_active' => ['nullable', 'boolean']
+        ];
+    }
+
+    public function rules()
+    {
+        switch ($this->method()){
+            case 'POST': return $this->postRules();
+            case 'PUT': return $this->putRules();
+            default: return [];
+        }
     }
 }

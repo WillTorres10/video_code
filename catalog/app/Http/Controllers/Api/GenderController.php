@@ -15,7 +15,7 @@ class GenderController extends Controller
 
     public function store(GenderRequest $request)
     {
-        return Gender::create($request->all())->refresh();
+        return (Gender::create($request->all()))->refresh();
     }
 
     public function show(Gender $gender)
@@ -25,7 +25,8 @@ class GenderController extends Controller
 
     public function update(GenderRequest $request, Gender $gender)
     {
-        return $gender->update($request->all());
+        $gender->update($request->all());
+        return $gender->refresh();
     }
 
     public function destroy(Gender $gender)

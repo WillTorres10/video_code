@@ -15,7 +15,7 @@ class CategoryController extends Controller
 
     public function store(CategoryRequest $request)
     {
-        return Category::create($request->all());
+        return (Category::create($request->all()))->refresh();
     }
 
     public function show(Category $category)
@@ -25,7 +25,8 @@ class CategoryController extends Controller
 
     public function update(CategoryRequest $request, Category $category)
     {
-        return $category->update($request->all());
+        $category->update($request->all());
+        return $category->refresh();
     }
 
     public function destroy(Category $category)
