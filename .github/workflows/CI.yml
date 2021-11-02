@@ -35,7 +35,7 @@ jobs:
         
     - name: Configuração do BD
       run: |
-        echo "dd(config()->get('database.connections.mysql'));" | php artisan tinker
+        echo "dd(config()->get('database.connections.mysql')); exit" | php artisan tinker
 
     - name: Run Testsuite
       run: vendor/bin/phpunit tests/
