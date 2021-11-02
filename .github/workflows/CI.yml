@@ -1,5 +1,8 @@
 on: push
 name: CI
+defaults:
+  run:
+    working-directory: ./catalog
 jobs:
   phpunit:
     defaults:
@@ -24,7 +27,7 @@ jobs:
       with:
         fetch-depth: 1
 
-    - name: Install composer dependencies
+    - name: Setup and run tests
       run: |
         composer install --no-scripts
 
