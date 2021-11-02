@@ -32,14 +32,8 @@ jobs:
       run: |
         cp .env.example .env
         php artisan key:generate
-        
-    - name: Configuração do BD
-      env:
-            DB_PASSWORD: password
-      run: |
-        echo "dd(config()->get('database.connections.mysql')); exit" | php artisan tinker
 
     - name: Run Testsuite
       env:
-            DB_PASSWORD: password
+        DB_PASSWORD: password
       run: vendor/bin/phpunit tests/
