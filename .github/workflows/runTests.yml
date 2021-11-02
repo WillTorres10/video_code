@@ -27,9 +27,11 @@ jobs:
         composer install --no-scripts
 
     - name: Prepare Laravel Application
+      working-directory: ./catalog
       run: |
         cp .env.ci .env
         php artisan key:generate
 
     - name: Run Testsuite
+      working-directory: ./catalog
       run: vendor/bin/phpunit tests/
