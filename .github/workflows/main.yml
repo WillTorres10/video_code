@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./catalog
+        working-directory: catalog
     container:
       image: kirschbaumdevelopment/laravel-test-runner:8.0
 
