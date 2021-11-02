@@ -30,7 +30,7 @@ jobs:
         
     - name: SHOW PATH
       run: |
-        ls
+        ls -lsha
 
     - name: Prepare Laravel Application
       run: |
