@@ -14,7 +14,7 @@ jobs:
         image: mysql:8
         env:
           MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: test_test
+          MYSQL_DATABASE: catalog_test
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -34,8 +34,12 @@ jobs:
         php artisan key:generate
         
     - name: Configuração do BD
+      env:
+            DB_PASSWORD: password
       run: |
         echo "dd(config()->get('database.connections.mysql')); exit" | php artisan tinker
 
     - name: Run Testsuite
+      env:
+            DB_PASSWORD: password
       run: vendor/bin/phpunit tests/
