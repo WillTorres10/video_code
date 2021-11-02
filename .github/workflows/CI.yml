@@ -27,6 +27,9 @@ jobs:
     - name: Install composer dependencies
       run: |
         composer install --no-scripts
+    - name: Configuração do BD
+      run: |
+        echo "dd(config()->get('database.connections.mysql'));" | php artisan tinker
     
     - name: Prepare Laravel Application
       run: |
