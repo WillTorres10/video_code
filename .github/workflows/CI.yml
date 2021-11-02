@@ -26,15 +26,16 @@ jobs:
 
     - name: Install composer dependencies
       run: |
-        composer install --no-scripts
-    - name: Configuração do BD
-      run: |
-        echo "dd(config()->get('database.connections.mysql'));" | php artisan tinker
+        composer install
     
     - name: Prepare Laravel Application
       run: |
         cp .env.example .env
         php artisan key:generate
+        
+    - name: Configuração do BD
+      run: |
+        echo "dd(config()->get('database.connections.mysql'));" | php artisan tinker
 
     - name: Run Testsuite
       run: vendor/bin/phpunit tests/
