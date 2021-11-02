@@ -27,11 +27,14 @@ jobs:
     - name: Install composer dependencies
       run: |
         composer install --no-scripts
-
-    - name: Prepare Laravel Application
+    
+    - name: Show all files
       run: |
         ls -lsa
-        cp .env.actions .env
+    
+    - name: Prepare Laravel Application
+      run: |
+        cp .env.ci .env
         php artisan key:generate
 
     - name: Run Testsuite
