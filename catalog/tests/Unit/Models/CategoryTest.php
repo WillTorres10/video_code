@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Models;
 
+use App\Models\Traits\UUID;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Tests\TestCase;
@@ -17,30 +18,30 @@ class CategoryTest extends TestCase
         $this->category = new Category();
     }
 
-    public function testFillable()
+    public function testFillable(): void
     {
         $fillable = ['name', 'description', 'is_active'];
         $this->assertEquals($fillable, $this->category->getFillable());
     }
 
-    public function testIfUseTraits()
+    public function testIfUseTraits(): void
     {
-        $traits = [HasFactory::class, SoftDeletes::class];
+        $traits = [HasFactory::class, SoftDeletes::class, UUID::class];
         $categoryTraits = array_keys(class_uses(Category::class));
         $this->assertEquals($traits, $categoryTraits);
     }
 
-    public function testIfKeyTypeIsString()
+    public function testIfKeyTypeIsString(): void
     {
         $this->assertEquals('string', $this->category->getKeyType());
     }
 
-    public function testIfIncrementingIsFalse()
+    public function testIfIncrementingIsFalse(): void
     {
         $this->assertFalse($this->category->incrementing);
     }
 
-    public function testDatesCast()
+    public function testDatesCast(): void
     {
         $expectedDates = ['created_at', 'updated_at', 'deleted_at'];
         $dates = $this->category->getDates();
@@ -50,13 +51,13 @@ class CategoryTest extends TestCase
         $this->assertCount(count($expectedDates), $dates);
     }
 
-    public function testCastAttributes()
+    public function testCastAttributes(): void
     {
         $casts = ['id' => 'string', 'is_active'=>'boolean', 'deleted_at'=>'datetime'];
         $this->assertEquals($casts, $this->category->getCasts());
     }
 
-    public function testIncrementingAttributes()
+    public function testIncrementingAttributes(): void
     {
         $this->assertFalse($this->category->incrementing);
     }

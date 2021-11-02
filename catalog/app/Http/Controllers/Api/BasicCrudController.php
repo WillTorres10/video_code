@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Requests\CategoryRequest;
-use App\Models\Category;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Http\{Request, Response};
 
 abstract class BasicCrudController extends Controller
 {
@@ -20,6 +19,9 @@ abstract class BasicCrudController extends Controller
         return $this->model()::all();
     }
 
+    /**
+     * @throws ValidationException
+     */
     public function store(Request $request)
     {
         $validatedData = $this->validate($request, $this->rulesStore());
@@ -40,6 +42,9 @@ abstract class BasicCrudController extends Controller
         return $this->findOrFail($id);
     }
 
+    /**
+     * @throws ValidationException
+     */
     public function update(Request $request, $id)
     {
         $model = $this->findOrFail($id);
@@ -48,16 +53,10 @@ abstract class BasicCrudController extends Controller
         return $model->refresh();
     }
 
-    public function destroy($id)
+    public function destroy($id): Response
     {
         $model = $this->findOrFail($id);
         $model->delete();
         return response()->noContent();
     }
-//
-//    public function destroy(Category $category)
-//    {
-//        $category->delete();
-//        return response()->noContent();
-//    }
 }

@@ -2,36 +2,30 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Requests\GenderRequest;
 use App\Models\Gender;
-use App\Http\Controllers\Controller;
+use JetBrains\PhpStorm\ArrayShape;
 
-class GenderController extends Controller
+class GenderController extends BasicCrudController
 {
-    public function index()
+    private $rules = [
+        'name' => ['required', 'string', 'max:255'],
+        'is_active' => ['required', 'boolean']
+    ];
+
+    protected function model()
     {
-        return Gender::all();
+        return Gender::class;
     }
 
-    public function store(GenderRequest $request)
+    #[ArrayShape(['name' => "string[]", 'is_active' => "string[]"])]
+    protected function rulesStore()
     {
-        return (Gender::create($request->all()))->refresh();
+        return $this->rules;
     }
 
-    public function show(Gender $gender)
+    #[ArrayShape(['name' => "string[]", 'is_active' => "string[]"])]
+    protected function rulesUpdate()
     {
-        return $gender;
-    }
-
-    public function update(GenderRequest $request, Gender $gender)
-    {
-        $gender->update($request->all());
-        return $gender->refresh();
-    }
-
-    public function destroy(Gender $gender)
-    {
-        $gender->delete();
-        return response()->noContent();
+        return $this->rules;
     }
 }

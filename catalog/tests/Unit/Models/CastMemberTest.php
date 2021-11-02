@@ -2,49 +2,49 @@
 
 namespace Tests\Unit\Models;
 
-use App\Models\Gender;
+use App\Models\CastMember;
 use App\Models\Traits\UUID;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Tests\TestCase;
 
-class GenderTest extends TestCase
+class CastMemberTest extends TestCase
 {
-    protected Gender $gender;
+    protected CastMember $castMember;
 
     protected function setUp():void
     {
         parent::setUp();
-        $this->gender = new Gender();
+        $this->castMember = new CastMember();
     }
 
     public function testFillable()
     {
-        $fillable = ['name', 'is_active'];
-        $this->assertEquals($fillable, $this->gender->getFillable());
+        $fillable = ['name', 'type'];
+        $this->assertEquals($fillable, $this->castMember->getFillable());
     }
 
     public function testIfUseTraits()
     {
         $traits = [HasFactory::class, SoftDeletes::class, UUID::class];
-        $genderTraits = array_keys(class_uses(Gender::class));
-        $this->assertEquals($traits, $genderTraits);
+        $castMemberTraits = array_keys(class_uses(CastMember::class));
+        $this->assertEquals($traits, $castMemberTraits);
     }
 
     public function testIfKeyTypeIsString()
     {
-        $this->assertEquals('string', $this->gender->getKeyType());
+        $this->assertEquals('string', $this->castMember->getKeyType());
     }
 
     public function testIfIncrementingIsFalse()
     {
-        $this->assertFalse($this->gender->incrementing);
+        $this->assertFalse($this->castMember->incrementing);
     }
 
     public function testDatesCast()
     {
         $expectedDates = ['created_at', 'updated_at', 'deleted_at'];
-        $dates = $this->gender->getDates();
+        $dates = $this->castMember->getDates();
         foreach ($expectedDates as $expected) {
             $this->assertContains($expected, $dates);
         }
@@ -53,12 +53,12 @@ class GenderTest extends TestCase
 
     public function testCastAttributes()
     {
-        $casts = ['id' => 'string', 'is_active'=>'boolean', 'deleted_at'=>'datetime'];
-        $this->assertEquals($casts, $this->gender->getCasts());
+        $casts = ['id' => 'string', 'type'=>'integer', 'deleted_at'=>'datetime'];
+        $this->assertEquals($casts, $this->castMember->getCasts());
     }
 
     public function testIncrementingAttributes()
     {
-        $this->assertFalse($this->gender->incrementing);
+        $this->assertFalse($this->castMember->incrementing);
     }
 }

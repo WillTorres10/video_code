@@ -21,4 +21,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::group(['namespace'=>'App\Http\Controllers\Api'], function () {
     Route::resource('categories', 'CategoryController', ['except' => ['create', 'edit']]);
     Route::resource('genders', 'GenderController', ['except' => ['create', 'edit']]);
+    Route::resource('caster_member', 'CastMemberController', ['except' => ['create', 'edit']]);
 });

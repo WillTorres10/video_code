@@ -9,7 +9,7 @@ class CreateGendersTable extends Migration
     public function up()
     {
         Schema::create('genders', function (Blueprint $table) {
-            $table->string('id')->unique()->primary();
+            $table->uuid('id')->unique()->primary();
             $table->string('name');
             $table->boolean('is_active')->default(true);
             $table->timestamps();

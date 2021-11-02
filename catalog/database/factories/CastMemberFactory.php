@@ -2,19 +2,19 @@
 
 namespace Database\Factories;
 
-use App\Models\Category;
+use App\Models\CastMember;
 use Exception;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use JetBrains\PhpStorm\ArrayShape;
 
-class CategoryFactory extends Factory
+class CastMemberFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
      * @var string
      */
-    protected $model = Category::class;
+    protected $model = CastMember::class;
 
     /**
      * Define the model's default state.
@@ -22,12 +22,12 @@ class CategoryFactory extends Factory
      * @return array
      * @throws Exception
      */
-    #[ArrayShape(['name' => "string", 'description' => "null|string"])]
-    public function definition(): array
+    #[ArrayShape(['name' => "string", 'type' => "int"])]
+    public function definition():array
     {
         return [
-            'name' => $this->faker->colorName,
-            'description' => random_int(1,10) % 2 === 0 ? $this->faker->sentence() : null,
+            'name' => $this->faker->name,
+            'type' => random_int(1,10) % 2 === 0 ? CastMember::TYPE_DIRECTOR : CastMember::TYPE_ACTOR
         ];
     }
 }
