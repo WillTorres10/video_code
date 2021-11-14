@@ -3,11 +3,8 @@
 namespace Tests\Feature\Models;
 
 use App\Models\CastMember;
-use App\Observers\UUID;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class CastMemberTest extends TestCase

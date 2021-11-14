@@ -141,6 +141,10 @@ return [
         ],
     ],
 
+    'categories' => [
+        'no_related' => 'One or more categories are not related with the selected genres.'
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Custom Validation Attributes

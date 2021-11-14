@@ -2,18 +2,18 @@
 
 namespace Tests\Feature\Models;
 
-use App\Models\Gender;
+use App\Models\Genre;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
-class GenderTest extends TestCase
+class GenreTest extends TestCase
 {
     use DatabaseMigrations;
 
     private function newGender($name = 'test', $is_active = true)
     {
-        return Gender::create([
+        return Genre::create([
             'name' => $name,
             'is_active' => $is_active
         ]);
@@ -23,10 +23,10 @@ class GenderTest extends TestCase
     {
         $this->newGender();
 
-        $count = Gender::all();
+        $count = Genre::all();
         $this->assertCount(1, $count);
 
-        $genderKeys = array_keys(Gender::first()->getAttributes());
+        $genderKeys = array_keys(Genre::first()->getAttributes());
         $this->assertEqualsCanonicalizing(
             ['id', 'name', 'is_active', 'created_at', 'updated_at', 'deleted_at'],
             $genderKeys
@@ -67,7 +67,7 @@ class GenderTest extends TestCase
         $gender = $this->newGender();
         $idGender = $gender->id;
         $gender->delete();
-        $genderSearch = Gender::find($idGender);
+        $genderSearch = Genre::find($idGender);
         $this->assertNull($genderSearch);
     }
 }

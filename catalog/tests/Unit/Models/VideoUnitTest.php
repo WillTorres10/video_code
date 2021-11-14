@@ -2,49 +2,49 @@
 
 namespace Tests\Unit\Models;
 
-use App\Models\CastMember;
 use App\Models\Traits\UUID;
+use App\Models\Video;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Tests\TestCase;
 
-class CastMemberTest extends TestCase
+class VideoUnitTest extends TestCase
 {
-    protected CastMember $castMember;
+    protected Video $video;
 
     protected function setUp():void
     {
         parent::setUp();
-        $this->castMember = new CastMember();
+        $this->video = new Video();
     }
 
     public function testFillable()
     {
-        $fillable = ['name', 'type'];
-        $this->assertEquals($fillable, $this->castMember->getFillable());
+        $fillable = [ 'title', 'description', 'year_launched', 'opened', 'rating', 'duration' ];
+        $this->assertEquals($fillable, $this->video->getFillable());
     }
 
     public function testIfUseTraits()
     {
         $traits = [HasFactory::class, SoftDeletes::class, UUID::class];
-        $castMemberTraits = array_keys(class_uses(CastMember::class));
-        $this->assertEquals($traits, $castMemberTraits);
+        $videoTraits = array_keys(class_uses(Video::class));
+        $this->assertEquals($traits, $videoTraits);
     }
 
     public function testIfKeyTypeIsString()
     {
-        $this->assertEquals('string', $this->castMember->getKeyType());
+        $this->assertEquals('string', $this->video->getKeyType());
     }
 
     public function testIfIncrementingIsFalse()
     {
-        $this->assertFalse($this->castMember->incrementing);
+        $this->assertFalse($this->video->incrementing);
     }
 
     public function testDatesCast()
     {
         $expectedDates = ['created_at', 'updated_at', 'deleted_at'];
-        $dates = $this->castMember->getDates();
+        $dates = $this->video->getDates();
         foreach ($expectedDates as $expected) {
             $this->assertContains($expected, $dates);
         }
@@ -53,12 +53,7 @@ class CastMemberTest extends TestCase
 
     public function testCastAttributes()
     {
-        $casts = ['id' => 'string', 'type'=>'integer', 'deleted_at'=>'datetime'];
-        $this->assertEquals($casts, $this->castMember->getCasts());
-    }
-
-    public function testIncrementingAttributes()
-    {
-        $this->assertFalse($this->castMember->incrementing);
+        $casts = ['id' => 'string', 'opened'=>'boolean', 'year_launched' => 'integer', 'duration' => 'integer', 'deleted_at'=>'datetime'];
+        $this->assertEquals($casts, $this->video->getCasts());
     }
 }

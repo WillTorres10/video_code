@@ -6,7 +6,7 @@ use App\Models\Traits\UUID;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 
-class Gender extends Model
+class Genre extends Model
 {
     use HasFactory, SoftDeletes, UUID;
 
@@ -17,4 +17,14 @@ class Gender extends Model
     protected $casts = [
         'is_active' => 'boolean'
     ];
+
+    public function videos()
+    {
+        return $this->belongsToMany(Video::class);
+    }
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class);
+    }
 }

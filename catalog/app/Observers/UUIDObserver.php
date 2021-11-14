@@ -4,7 +4,7 @@ namespace App\Observers;
 
 use Illuminate\Support\Str;
 
-class UUID
+class UUIDObserver
 {
     public function creating($model)
     {

@@ -2,20 +2,20 @@
 
 namespace Tests\Unit\Models;
 
-use App\Models\Gender;
+use App\Models\Genre;
 use App\Models\Traits\UUID;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Tests\TestCase;
 
-class GenderTest extends TestCase
+class GenreUnitTest extends TestCase
 {
-    protected Gender $gender;
+    protected Genre $gender;
 
     protected function setUp():void
     {
         parent::setUp();
-        $this->gender = new Gender();
+        $this->gender = new Genre();
     }
 
     public function testFillable()
@@ -27,7 +27,7 @@ class GenderTest extends TestCase
     public function testIfUseTraits()
     {
         $traits = [HasFactory::class, SoftDeletes::class, UUID::class];
-        $genderTraits = array_keys(class_uses(Gender::class));
+        $genderTraits = array_keys(class_uses(Genre::class));
         $this->assertEquals($traits, $genderTraits);
     }
 
@@ -55,10 +55,5 @@ class GenderTest extends TestCase
     {
         $casts = ['id' => 'string', 'is_active'=>'boolean', 'deleted_at'=>'datetime'];
         $this->assertEquals($casts, $this->gender->getCasts());
-    }
-
-    public function testIncrementingAttributes()
-    {
-        $this->assertFalse($this->gender->incrementing);
     }
 }

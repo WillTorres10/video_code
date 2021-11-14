@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Tests\TestCase;
 use App\Models\Category;
 
-class CategoryTest extends TestCase
+class CategoryUnitTest extends TestCase
 {
     protected Category $category;
 
@@ -55,10 +55,5 @@ class CategoryTest extends TestCase
     {
         $casts = ['id' => 'string', 'is_active'=>'boolean', 'deleted_at'=>'datetime'];
         $this->assertEquals($casts, $this->category->getCasts());
-    }
-
-    public function testIncrementingAttributes(): void
-    {
-        $this->assertFalse($this->category->incrementing);
     }
 }

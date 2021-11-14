@@ -4,11 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateGendersTable extends Migration
+class CreateGenreTable extends Migration
 {
     public function up()
     {
-        Schema::create('genders', function (Blueprint $table) {
+        Schema::create('genres', function (Blueprint $table) {
             $table->uuid('id')->unique()->primary();
             $table->string('name');
             $table->boolean('is_active')->default(true);
@@ -19,6 +19,6 @@ class CreateGendersTable extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('genders');
+        Schema::dropIfExists('genres');
     }
 }

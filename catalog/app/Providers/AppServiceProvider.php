@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Models\{CastMember, Category, Gender};
-use App\Observers\UUID;
+use App\Models\{CastMember, Category, Genre, Video};
+use App\Observers\UUIDObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -25,8 +25,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        CastMember::observe(UUID::class);
-        Category::observe(UUID::class);
-        Gender::observe(UUID::class);
+        CastMember::observe(UUIDObserver::class);
+        Category::observe(UUIDObserver::class);
+        Genre::observe(UUIDObserver::class);
+        Video::observe(UUIDObserver::class);
     }
 }

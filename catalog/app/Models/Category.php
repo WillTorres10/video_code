@@ -17,4 +17,14 @@ class Category extends Model
     protected $casts = [
         'is_active' => 'boolean'
     ];
+
+    public function videos()
+    {
+        return $this->belongsToMany(Video::class);
+    }
+
+    public function genres()
+    {
+        return $this->belongsToMany(Genre::class);
+    }
 }

@@ -33,6 +33,28 @@ trait TestValidations
         $this->assertInvalidationFields($response, $fields, $rule, $ruleParams);
     }
 
+    protected function assertInvalidationStoreActionSpecificFields(
+        array $data,
+        array $fields,
+        string $rule,
+        array $ruleParams = []
+    )
+    {
+        $response = $this->json('POST', $this->routeStore(), $data);
+        $this->assertInvalidationFields($response, $fields, $rule, $ruleParams);
+    }
+
+    protected function assertInvalidationInUpdateActionSpecificFields(
+        array $data,
+        array $fields,
+        string $rule,
+        array $ruleParams = []
+    )
+    {
+        $response = $this->json('PUT', $this->routeUpdate(), $data);
+        $this->assertInvalidationFields($response, $fields, $rule, $ruleParams);
+    }
+
     protected function assertInvalidationFields(
         TestResponse $response,
         array $fields,
