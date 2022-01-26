@@ -7,6 +7,7 @@ use App\Rules\ValidateCategoriesOfGenres;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use phpDocumentor\Reflection\Types\This;
 
 class VideoController extends BasicCrudController
 {
@@ -29,34 +30,19 @@ class VideoController extends BasicCrudController
     public function store(Request $request)
     {
         $validatedData = $this->validate($request, $this->rulesStore());
-        $self = $this;
-        $obj = DB::transaction(function () use ($request, $validatedData, $self){
-            $obj = $this->model()::create($validatedData);
-            $self->handleRelations($obj, $request);
-            return $obj;
-        });
+        $obj = $this->model()::create($validatedData);
         $obj->refresh();
         return $obj;
     }
 
     public function update(Request $request, $id)
     {
+        /* @var $model Video */
         $model = $this->findOrFail($id);
         $validatedData = $this->validate($request, $this->rulesUpdate());
-        $self = $this;
-        $model = DB::transaction(function () use($request, $model, $validatedData, $self) {
-            $model->update($validatedData);
-            $self->handleRelations($model, $request);
-            return $model;
-        });
+        $model->update($validatedData);
         $model->refresh();
         return $model;
-    }
-
-    protected function handleRelations(Video $video, Request $request)
-    {
-        $video->categories()->sync($request->get('categories_id'));
-        $video->genres()->sync($request->get('genres_id'));
     }
 
     protected function model()

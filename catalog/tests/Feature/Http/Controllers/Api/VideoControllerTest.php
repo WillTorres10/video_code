@@ -133,56 +133,6 @@ class VideoControllerTest extends TestCase
         }
     }
 
-    public function testRollbackStore()
-    {
-        $controller = Mockery::mock(VideoController::class)
-            ->makePartial()
-            ->shouldAllowMockingProtectedMethods();
-        $controller
-            ->shouldReceive('handleRelations')
-            ->once()
-            ->andThrow(new TestException());
-        $controller
-            ->shouldReceive('validate')
-            ->withAnyArgs()
-            ->andReturn($this->sendData);
-        $controller
-            ->shouldReceive('rulesStore')
-            ->withAnyArgs()
-            ->andReturn([]);
-        $request = Mockery::mock(Request::class);
-        try {
-            $controller->store($request);
-        } catch (TestException $e) {
-            $this->assertCount(1, Video::all());
-        }
-    }
-
-    public function testRollbackUpdate()
-    {
-        $controller = Mockery::mock(VideoController::class)
-            ->makePartial()
-            ->shouldAllowMockingProtectedMethods();
-        $controller
-            ->shouldReceive('handleRelations')
-            ->once()
-            ->andThrow(new TestException());
-        $controller
-            ->shouldReceive('validate')
-            ->withAnyArgs()
-            ->andReturn($this->sendData);
-        $controller
-            ->shouldReceive('rulesUpdate')
-            ->withAnyArgs()
-            ->andReturn([]);
-        $request = Mockery::mock(Request::class);
-        try {
-            $controller->update($request, $this->video->id);
-        } catch (TestException $e) {
-            $this->assertCount(1, Video::all());
-        }
-    }
-
     public function testSave()
     {
         $generated = $this->generateGenresWithCategories();
