@@ -1,5 +1,12 @@
 <?php
 
+if (!function_exists('filesystem_driver')) {
+    function filesystem_driver() {
+        $env = env('FILESYSTEM_DRIVER', 'local');
+        return (env('APP_ENV') == 'testing') ? 'video_local' : $env;
+    }
+}
+
 return [
 
     /*
@@ -33,6 +40,11 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app'),
+        ],
+
+        'video_local' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/videos'),
         ],
 
         'public' => [
