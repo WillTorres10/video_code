@@ -2,3 +2,5 @@
 .env.testing
 .idea
 .config
+/.idea
+.
