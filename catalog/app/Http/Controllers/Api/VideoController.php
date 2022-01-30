@@ -52,7 +52,9 @@ class VideoController extends BasicCrudController
 
     protected function rulesStore()
     {
-        return $this->rules;
+        return $this->rules + [
+            'video_file' => ['nullable', 'file', 'mimetypes:video/mp4', 'max:20000']
+        ];
     }
 
     protected function rulesUpdate()

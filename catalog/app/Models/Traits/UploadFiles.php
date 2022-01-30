@@ -2,12 +2,13 @@
 
 namespace App\Models\Traits;
 
+use App\Exceptions\ConfigurationNotSettedException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 trait UploadFiles
 {
-    protected abstract function uploadDir(): string;
+    abstract protected function uploadDir(): string;
 
     /**
      * @param UploadedFile[] $files
@@ -48,5 +49,25 @@ trait UploadFiles
     {
         $filename = $file instanceof UploadedFile ? $file->hashName() : $file;
         Storage::delete("{$this->uploadDir()}/{$filename}");
+    }
+
+    /**
+     * @param array $attributes
+     * @return UploadedFile[]
+     * @throws ConfigurationNotSettedException
+     */
+    public static function extractFiles(array &$attributes = []): array
+    {
+        if (!isset(self::$fileFields)) {
+            throw new ConfigurationNotSettedException(field: '$fileFields');
+        }
+        $files = [];
+        foreach (self::$fileFields as $field) {
+            if (isset($attributes[$field]) && $attributes[$field] instanceof UploadedFile) {
+                $files[] = $attributes[$field];
+                $attributes[$field] = $attributes[$field]->hashName();
+            }
+        }
+        return $files;
     }
 }

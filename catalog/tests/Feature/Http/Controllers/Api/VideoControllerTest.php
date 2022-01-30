@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\VideoController;
 use App\Models\{Category, Genre, Video};
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Ramsey\Collection\Collection;
 use Tests\TestCase;
 use Tests\Traits\{TestSaves, TestValidations};
@@ -133,6 +135,18 @@ class VideoControllerTest extends TestCase
         }
     }
 
+    public function testInvalidationFiles()
+    {
+        // Check if is file
+        $this->assertInvalidationInStoreAction(['video_file' => 'test'], 'file');
+        // Check max size of file
+        $file = UploadedFile::fake()->create('video.mp4', 21000);
+        $this->assertInvalidationInStoreAction(['video_file' => $file], 'max.file');
+        // Check mimetype of file
+        $file = UploadedFile::fake()->create('video.txt', 10000);
+        $this->assertInvalidationInStoreAction(['video_file' => $file], 'mimetypes');
+    }
+
     public function testSave()
     {
         $generated = $this->generateGenresWithCategories();
@@ -154,6 +168,19 @@ class VideoControllerTest extends TestCase
             $response->assertJsonStructure(['created_at', 'updated_at', 'deleted_at']);
             $this->assertUpdate($value['send_data'], $value['test_data'] + $this->nullFields);
         }
+    }
+
+    public function testUploadFileStore()
+    {
+        $generated = $this->generateGenresWithCategories();
+        $file = UploadedFile::fake()->create('file.mp4', 10000);
+        $data = $this->sendData + $this->selectGenresAndCategories($generated) + [
+            'video_file' => $file
+        ];
+        $response = $this->json('POST', $this->routeStore(), $data);
+        $id = $response->json('id');
+        $file_name = $response->json('video_file');
+        Storage::assertExists("$id/$file_name");
     }
 
     protected function generateGenresWithCategories()

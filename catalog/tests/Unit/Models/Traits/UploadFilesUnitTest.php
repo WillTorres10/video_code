@@ -2,9 +2,11 @@
 
 namespace Tests\Unit\Models;
 
-use App\Models\CastMember;
+use App\Exceptions\ConfigurationNotSettedException;
+use App\Models\Traits\UploadFiles;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Mockery\MockInterface;
 use Tests\Stubs\Models\UploadFilesStub;
 use Tests\TestCase;
 
@@ -60,6 +62,52 @@ class UploadFilesUnitTest extends TestCase
         $this->obj->uploadFiles($files);
         $this->obj->deleteFiles($files);
         $this->asserFilesMissingOnStorage($files);
+    }
+
+    public function testThrowErrorVariableFileFieldsNotSetted()
+    {
+        try {
+            $files = [];
+            UploadFiles::extractFiles($files);
+        } catch (ConfigurationNotSettedException $e) {
+            $this->assertTrue(true);
+        }
+    }
+
+    public function testExtractFiles()
+    {
+        $attributes = [];
+        $files = UploadFilesStub::extractFiles($attributes);
+        $this->assertCount(0, $attributes);
+        $this->assertCount(0, $files);
+
+        $attributes = ['file1' => 'test'];
+        $files = UploadFilesStub::extractFiles($attributes);
+        $this->assertCount(1, $attributes);
+        $this->assertEquals(['file1' => 'test'], $attributes);
+        $this->assertCount(0, $files);
+
+        $attributes = ['file1' => 'test', 'file2' => 'test'];
+        $files = UploadFilesStub::extractFiles($attributes);
+        $this->assertCount(2, $attributes);
+        $this->assertEquals(['file1' => 'test', 'file2' => 'test'], $attributes);
+        $this->assertCount(0, $files);
+
+        $file1 = $this->factoryVideo(1);
+        $attributes = ['file1' => $file1, 'other' => 'test'];
+        $files = UploadFilesStub::extractFiles($attributes);
+        $this->assertCount(2, $attributes);
+        $this->assertEquals(['file1' => $file1->hashName(), 'other' => 'test'], $attributes);
+        $this->assertCount(1, $files);
+        $this->assertEquals([$file1], $files);
+
+        $file2 = $this->factoryVideo(2);
+        $attributes = ['file1' => $file1, 'file2' => $file2, 'other' => 'test'];
+        $files = UploadFilesStub::extractFiles($attributes);
+        $this->assertCount(3, $attributes);
+        $this->assertEquals(['file1' => $file1->hashName(), 'file2' => $file2->hashName(),  'other' => 'test'], $attributes);
+        $this->assertCount(2, $files);
+        $this->assertEquals([$file1, $file2], $files);
     }
 
     private function factoryVideosArray(int $total): array

@@ -2,21 +2,23 @@
 
 namespace App\Models;
 
-use App\Models\Traits\UUID;
+use App\Models\Traits\{UUID, UploadFiles};
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 use Illuminate\Support\Facades\DB;
 use Exception;
 
 class Video extends Model
 {
-    use HasFactory, SoftDeletes, UUID;
+    use HasFactory, SoftDeletes, UUID, UploadFiles;
 
     const NO_RATING = 'L';
     const RATING_LIST = [self::NO_RATING, '10', '12', '14', '16', '18'];
 
-    protected $fillable = [ 'title', 'description', 'year_launched', 'opened', 'rating', 'duration' ];
+    protected $fillable = [
+        'title', 'description', 'year_launched', 'opened', 'rating', 'duration',
+        'thumb_file', 'banner_file', 'trailer_file', 'video_file'
+    ];
     protected $dates = ['deleted_at'];
     protected $casts = [
         'opened' => 'boolean',
@@ -24,13 +26,17 @@ class Video extends Model
         'duration' => 'integer'
     ];
 
+    protected static array $fileFields = ['thumb_file', 'banner_file', 'trailer_file', 'video_file'];
+
     public static function create(array $attributes = [])
     {
+        $files = self::extractFiles($attributes);
         try {
             DB::beginTransaction();
             /* @var $obj Video */
             $obj = static::query()->create($attributes);
             self::handleRelations($obj, $attributes);
+            $obj->uploadFiles($files);
             // Realizar o upload dos arquivos
             DB::commit();
             return $obj;
@@ -38,6 +44,7 @@ class Video extends Model
             DB::rollBack();
             if(isset($obj)) {
                 // Excluir os arquivos de upload
+                $obj->deleteFiles($files);
             }
             throw $exception;
         }
@@ -80,5 +87,10 @@ class Video extends Model
     public function genres()
     {
         return $this->belongsToMany(Genre::class);
+    }
+
+    protected function uploadDir(): string
+    {
+        return (string) $this->id;
     }
 }
