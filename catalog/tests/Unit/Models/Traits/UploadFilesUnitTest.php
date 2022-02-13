@@ -23,6 +23,7 @@ class UploadFilesUnitTest extends TestCase
 
     public function testUploadFile()
     {
+        Storage::fake();
         $file = $this->factoryVideo(1);
         $this->obj->uploadFile($file);
         $this->assertFilesOnStorage([$file]);
@@ -30,6 +31,7 @@ class UploadFilesUnitTest extends TestCase
 
     public function testUploadFiles()
     {
+        Storage::fake();
         $files = $this->factoryVideosArray(2);
         $this->obj->uploadFiles($files);
         $this->assertFilesOnStorage($files);
@@ -37,6 +39,7 @@ class UploadFilesUnitTest extends TestCase
 
     public function testDeleteFile()
     {
+        Storage::fake();
         // Deleting by hash name
         $file = $this->factoryVideo(1);
         $this->obj->uploadFile($file);
@@ -51,6 +54,7 @@ class UploadFilesUnitTest extends TestCase
 
     public function testDeleteFiles()
     {
+        Storage::fake();
         // Deleting by hash name
         $files = $this->factoryVideosArray(2);
         $this->obj->uploadFiles($files);
@@ -64,8 +68,23 @@ class UploadFilesUnitTest extends TestCase
         $this->asserFilesMissingOnStorage($files);
     }
 
+    public function testDeleteOldFiles()
+    {
+        Storage::fake();
+        $files = $this->factoryVideosArray(2);
+        $this->obj->uploadFiles($files);
+        $this->obj->deleteOldFiles();
+        $this->assertCount(2, Storage::allFiles());
+
+        $this->obj->oldFiles = [$files[0]->hashName()];
+        $this->obj->deleteOldFiles();
+        $this->asserFilesMissingOnStorage([$files[0]]);
+        $this->assertFilesOnStorage([$files[1]]);
+    }
+
     public function testThrowErrorVariableFileFieldsNotSetted()
     {
+        Storage::fake();
         try {
             $files = [];
             UploadFiles::extractFiles($files);
@@ -76,6 +95,7 @@ class UploadFilesUnitTest extends TestCase
 
     public function testExtractFiles()
     {
+        Storage::fake();
         $attributes = [];
         $files = UploadFilesStub::extractFiles($attributes);
         $this->assertCount(0, $attributes);
