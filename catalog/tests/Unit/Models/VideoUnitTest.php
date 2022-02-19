@@ -8,15 +8,23 @@ use App\Models\Video;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Tests\TestCase;
+use Tests\Traits\TestFileFieldsAndValidations;
 
 class VideoUnitTest extends TestCase
 {
+    use TestFileFieldsAndValidations;
+
     protected Video $video;
 
     protected function setUp():void
     {
         parent::setUp();
         $this->video = new Video();
+    }
+
+    protected function getModel()
+    {
+        return Video::class;
     }
 
     public function testFillable()

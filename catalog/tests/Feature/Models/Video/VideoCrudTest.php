@@ -1,53 +1,24 @@
 <?php
 
-namespace Tests\Feature\Models;
+namespace Tests\Feature\Models\Video;
 
-use App\Models\Category;
-use App\Models\Genre;
-use App\Models\Video;
-use Faker\Factory;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use App\Models\{Category, Genre, Video};
 use Illuminate\Support\Facades\Validator;
-use Mockery;
 use Ramsey\Uuid\Uuid;
 use Tests\Exceptions\TestException;
-use Tests\TestCase;
+use Mockery;
 
-class VideoTest extends TestCase
+class VideoCrudTest extends BaseVideoTestCase
 {
-    use DatabaseMigrations;
+
+    private $fileFieldsData = [];
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->data = [
-            'title' => 'title',
-            'description' => 'description',
-            'year_launched' => 2010,
-            'rating' => Video::RATING_LIST[0],
-            'duration' => 90
-        ];
-    }
-
-
-    private function newVideo(
-        $title = 'test', $description = 'a test description', $year_launched = 2010, $opened = true,
-        $rating = Video::RATING_LIST[0], $duration = 120, $get_array = false
-    )
-    {
-        $toSave = [
-            'title' => $title,
-            'description' => $description,
-            'year_launched' => $year_launched,
-            'rating' => $rating,
-            'duration' => $duration
-        ];
-        if(isset($opened)) {
-            $toSave['opened'] = $opened;
+        foreach (Video::$fileFields as $field) {
+            $fileFieldsData[$field] = "$field.test";
         }
-        if($get_array)
-            return $toSave;
-        return Video::create($toSave);
     }
 
     public function testList()
@@ -67,17 +38,35 @@ class VideoTest extends TestCase
 
     public function testCreateWithBasicFields()
     {
-        $video = Video::create($this->data);
+        $fileFields = [];
+        foreach (Video::$fileFields as $field) {
+            $fileFields[$field] = "$field.test";
+        }
+
+        $video = Video::create($this->data + $this->fileFieldsData);
         $video->refresh();
 
         $this->assertTrue(Uuid::isValid($video->id));
         $this->assertFalse($video->opened);
-        $this->assertDatabaseHas('videos', $this->data + ['opened' => false]);
+        $this->assertDatabaseHas('videos', $this->data + $this->fileFieldsData + ['opened' => false]);
 
         $video = Video::create($this->data + ['opened' => true]);
         $this->assertTrue(Uuid::isValid($video->id));
         $this->assertTrue($video->opened);
         $this->assertDatabaseHas('videos', $this->data + ['opened' => true]);
+    }
+
+    public function testUpdateWithBasicFields()
+    {
+        $video = $this->newVideo(opened: false);
+        $video->update($this->data + $this->fileFieldsData);
+        $this->assertFalse($video->opened);
+        $this->assertDatabaseHas('videos', $this->data + $this->fileFieldsData + ['opened' => false]);
+
+        $video = $this->newVideo(opened: false);
+        $video->update($this->data + $this->fileFieldsData + ['opened' => true]);
+        $this->assertTrue($video->opened);
+        $this->assertDatabaseHas('videos', $this->data + $this->fileFieldsData + ['opened' => true]);
     }
 
     public function testCreateRelations()
@@ -163,22 +152,6 @@ class VideoTest extends TestCase
             $video = Video::find($video->id);
             $this->assertNotEquals('updated', $video->title);
         }
-    }
-
-    protected function assertHasCategory($videoId, $categoryId)
-    {
-        $this->assertDatabaseHas('category_video', [
-            'video_id' => $videoId,
-            'category_id' => $categoryId
-        ]);
-    }
-
-    protected function assertHasGenre($videoId, $genreId)
-    {
-        $this->assertDatabaseHas('genre_video', [
-            'video_id' => $videoId,
-            'genre_id' => $genreId
-        ]);
     }
 
     public function testDelete()

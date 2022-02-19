@@ -1,34 +1,12 @@
 <?php
 
-namespace Tests\Feature\Http\Controllers\Api;
+namespace Tests\Feature\Http\Controllers\Api\VideoController;
 
-use App\Http\Controllers\Api\VideoController;
-use App\Models\{Category, Genre, Video};
-use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use Ramsey\Collection\Collection;
-use Tests\TestCase;
-use Tests\Traits\{TestSaves, TestValidations};
-use Tests\Exceptions\TestException;
-use Mockery;
+use App\Models\Video;
 
-class VideoControllerTest extends TestCase
+
+class VideoControllerCrudTest extends BaseVideoControllerTestCase
 {
-    use DatabaseMigrations, TestSaves, TestValidations;
-
-    private Video $video;
-    private string $stringWith256;
-    private array $sendData;
-    private array $nullFields = [
-        'thumb_file' => null,
-        'banner_file' => null,
-        'trailer_file' => null,
-        'video_file' => null,
-        'deleted_at' => null
-    ];
-
     public function testIndex()
     {
         $response = $this->json('GET', route('video.index'));
@@ -135,18 +113,6 @@ class VideoControllerTest extends TestCase
         }
     }
 
-    public function testInvalidationFiles()
-    {
-        // Check if is file
-        $this->assertInvalidationInStoreAction(['video_file' => 'test'], 'file');
-        // Check max size of file
-        $file = UploadedFile::fake()->create('video.mp4', 21000);
-        $this->assertInvalidationInStoreAction(['video_file' => $file], 'max.file');
-        // Check mimetype of file
-        $file = UploadedFile::fake()->create('video.txt', 10000);
-        $this->assertInvalidationInStoreAction(['video_file' => $file], 'mimetypes');
-    }
-
     public function testSave()
     {
         $generated = $this->generateGenresWithCategories();
@@ -170,76 +136,11 @@ class VideoControllerTest extends TestCase
         }
     }
 
-    public function testUploadFileStore()
-    {
-        $generated = $this->generateGenresWithCategories();
-        $file = UploadedFile::fake()->create('file.mp4', 10000);
-        $data = $this->sendData + $this->selectGenresAndCategories($generated) + [
-            'video_file' => $file
-        ];
-        $response = $this->json('POST', $this->routeStore(), $data);
-        $id = $response->json('id');
-        $file_name = $response->json('video_file');
-        Storage::assertExists("$id/$file_name");
-    }
-
-    protected function generateGenresWithCategories()
-    {
-        $noUsed = Category::factory(5)->create()->pluck('id');
-        $toUse = collect();
-        $genres = Genre::factory(3)->create();
-        foreach ($genres as $genre) {
-            $categories = Category::factory(random_int(2, 4))->create()->pluck('id');
-            $toUse = $toUse->merge($categories);
-            $genre->categories()->sync($categories);
-            $genre->load('categories');
-        }
-        return ['catToNotUse' => $noUsed, 'catToUse' => $toUse, 'genres' => $genres];
-    }
-
-    protected function selectGenresAndCategories($generated)
-    {
-        $genre = $generated['genres']->random();
-        return [
-            'categories_id' => $genre->categories()->pluck('id')->toArray(),
-            'genres_id' => [$genre->id]
-        ];
-    }
-
     public function testDestroy()
     {
         $response = $this->json('DELETE', route('video.destroy', ['video' => $this->video->id]));
         $response->assertStatus(204);
         $this->assertNull(Video::find($this->video->id));
         $this->assertNotNull(Video::withTrashed()->find($this->video->id));
-    }
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->video = Video::factory(1)->create()->first();
-        $this->stringWith256 = str_repeat('a', 256);
-        $this->sendData = [
-            'title' => 'title',
-            'description' => 'description',
-            'year_launched' => 2010,
-            'rating' => Video::RATING_LIST[0],
-            'duration' => 90,
-        ];
-    }
-
-    protected function model()
-    {
-        return Video::class;
-    }
-
-    protected function routeStore()
-    {
-        return route('video.store');
-    }
-
-    protected function routeUpdate()
-    {
-        return route('video.update', ['video' => $this->video->id]);
     }
 }
