@@ -2,34 +2,55 @@
 
 namespace Tests\Feature\Http\Controllers\Api\VideoController;
 
-use Illuminate\Http\UploadedFile;
+use App\Models\Video;
 use Illuminate\Support\Facades\Storage;
+use Tests\Traits\TestUploadHooks;
 
 class VideoControllerUploadTest extends BaseVideoControllerTestCase
 {
-    public function testInvalidationFiles()
+    use TestUploadHooks;
+
+    protected function getModel()
     {
-        // Check if is file
-        $this->assertInvalidationInStoreAction(['video_file' => 'test'], 'file');
-        // Check max size of file
-        $file = UploadedFile::fake()->create('video.mp4', 21000);
-        $this->assertInvalidationInStoreAction(['video_file' => $file], 'max.file');
-        // Check mimetype of file
-        $file = UploadedFile::fake()->create('video.txt', 10000);
-        $this->assertInvalidationInStoreAction(['video_file' => $file], 'mimetypes');
+        return Video::class;
+    }
+
+    public function testInvalidationIfIsFile()
+    {
+        Storage::fake();
+        $fieldsToTest = [];
+        foreach (Video::$fileFields as $field){
+            $fieldsToTest[$field] = 'test';
+        }
+        $this->assertInvalidationInStoreAction($fieldsToTest, 'file');
+    }
+
+    public function testInvalidationMaxFileSize()
+    {
+        Storage::fake();
+        $files = $this->generateArrayFilesUploadForModel(10);
+        $this->assertInvalidationInStoreAction($files, 'max.file');
+    }
+
+    public function testInvalidationMimetypeFiles()
+    {
+        Storage::fake();
+        $files = $this->generateArrayFilesUploadForModel(reverse: true);
+        $this->assertInvalidationInStoreAction($files, 'mimetypes');
     }
 
     public function testUploadFileStore()
     {
         Storage::fake();
         $generated = $this->generateGenresWithCategories();
-        $file = UploadedFile::fake()->create('file.mp4', 10000);
-        $data = $this->sendData + $this->selectGenresAndCategories($generated) + [
-                'video_file' => $file
-            ];
+        $data = $this->sendData + $this->selectGenresAndCategories($generated);
+        $data += $this->generateArrayFilesUploadForModel();
         $response = $this->json('POST', $this->routeStore(), $data);
         $id = $response->json('id');
-        $file_name = $response->json('video_file');
-        Storage::assertExists("$id/$file_name");
+        foreach (Video::getFilesFieldsRules() as $fieldRules) {
+            $file_name = $response->json($fieldRules->field);
+            Storage::assertExists("$id/$file_name");
+        }
     }
+
 }

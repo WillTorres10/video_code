@@ -3,6 +3,7 @@
 namespace App\Models\Traits;
 
 use App\Exceptions\ConfigurationNotSettedException;
+use App\Models\DTOs\FileRulesValidation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
@@ -13,6 +14,11 @@ trait UploadFiles
     public $oldFiles = [];
 
     abstract protected function uploadDir(): string;
+
+    /**
+     * @return FileRulesValidation[]
+     */
+    abstract public static function getFilesFieldsRules(): array;
 
     public static function bootUploadFiles()
     {
@@ -90,5 +96,28 @@ trait UploadFiles
             }
         }
         return $files;
+    }
+
+    /**
+     * @throws \Spatie\DataTransferObject\Exceptions\UnknownProperties
+     * @return array
+     */
+    public static function validationRulesFiles(): array
+    {
+        $rules = [];
+        foreach (self::getFilesFieldsRules() as $fieldsRule) {
+            $rules[$fieldsRule->field] = $fieldsRule->getArrayValidationRules();
+        }
+        return $rules;
+    }
+
+    public function relativeFilePath($value)
+    {
+        return "{$this->uploadDir()}/{$value}";
+    }
+
+    protected function getFileUrl($filename)
+    {
+        return Storage::url($this->relativeFilePath($filename));
     }
 }

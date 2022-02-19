@@ -10,7 +10,7 @@ abstract class BaseVideoTestCase extends TestCase
 {
     use DatabaseMigrations;
 
-    protected $data;
+    protected array $data;
 
     protected function setUp(): void
     {

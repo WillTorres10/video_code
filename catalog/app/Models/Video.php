@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use App\Models\Traits\{UUID, UploadFiles};
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\{Model, SoftDeletes};
-use Illuminate\Support\Facades\DB;
+use App\Models\DTOs\FileRulesValidation;
+use App\Models\Traits\{UploadFiles, UUID};
 use Exception;
+use Illuminate\Database\Eloquent\{Model, SoftDeletes};
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\DB;
 
 class Video extends Model
 {
@@ -15,6 +16,10 @@ class Video extends Model
     const NO_RATING = 'L';
     const RATING_LIST = [self::NO_RATING, '10', '12', '14', '16', '18'];
 
+    const FILE_TYPE_VALIDATION_VIDEO = "mimetypes:video/mp4";
+    const FILE_TYPE_VALIDATION_IMAGE = "image";
+
+    public static array $fileFields = ['thumb_file', 'banner_file', 'trailer_file', 'video_file'];
     protected $fillable = [
         'title', 'description', 'year_launched', 'opened', 'rating', 'duration',
         'thumb_file', 'banner_file', 'trailer_file', 'video_file'
@@ -26,7 +31,18 @@ class Video extends Model
         'duration' => 'integer'
     ];
 
-    public static array $fileFields = ['thumb_file', 'banner_file', 'trailer_file', 'video_file'];
+    /**
+     * @throws \Spatie\DataTransferObject\Exceptions\UnknownProperties
+     */
+    public static function getFilesFieldsRules(): array
+    {
+        return [
+            new FileRulesValidation(field: 'thumb_file', required: false, typeValidation: self::FILE_TYPE_VALIDATION_IMAGE, maxKilobytes: 5120),
+            new FileRulesValidation(field: 'banner_file', required: false, typeValidation: self::FILE_TYPE_VALIDATION_IMAGE, maxKilobytes: 10240),
+            new FileRulesValidation(field: 'trailer_file', required: false, typeValidation: self::FILE_TYPE_VALIDATION_VIDEO, maxKilobytes: 1048576),
+            new FileRulesValidation(field: 'video_file', required: false, typeValidation: self::FILE_TYPE_VALIDATION_VIDEO, maxKilobytes: 52428800),
+        ];
+    }
 
     public static function create(array $attributes = [])
     {
@@ -42,11 +58,31 @@ class Video extends Model
             return $obj;
         } catch (Exception $exception) {
             DB::rollBack();
-            if(isset($obj)) {
+            if (isset($obj)) {
                 $obj?->deleteFiles($files);
             }
             throw $exception;
         }
+    }
+
+    public static function handleRelations(Video $video, array $attributes)
+    {
+        if (isset($attributes['categories_id'])) {
+            $video->categories()->sync($attributes['categories_id']);
+        }
+        if (isset($attributes['genres_id'])) {
+            $video->genres()->sync($attributes['genres_id']);
+        }
+    }
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class);
+    }
+
+    public function genres()
+    {
+        return $this->belongsToMany(Genre::class);
     }
 
     public function update(array $attributes = [], array $options = [])
@@ -71,28 +107,28 @@ class Video extends Model
         }
     }
 
-    public static function handleRelations(Video $video, array $attributes)
-    {
-        if(isset($attributes['categories_id'])) {
-            $video->categories()->sync($attributes['categories_id']);
-        }
-        if(isset($attributes['genres_id'])) {
-            $video->genres()->sync($attributes['genres_id']);
-        }
-    }
-
-    public function categories()
-    {
-        return $this->belongsToMany(Category::class);
-    }
-
-    public function genres()
-    {
-        return $this->belongsToMany(Genre::class);
-    }
-
     protected function uploadDir(): string
     {
-        return (string) $this->id;
+        return (string)$this->id;
+    }
+
+    public function getThumbFileUrlAttribute()
+    {
+        return $this->thumb_file ? $this->getFileUrl($this->thumb_file) : null;
+    }
+
+    public function getBannerFileUrlAttribute()
+    {
+        return $this->banner_file ? $this->getFileUrl($this->banner_file) : null;
+    }
+
+    public function getTrailerFileUrlAttribute()
+    {
+        return $this->trailer_file ? $this->getFileUrl($this->trailer_file) : null;
+    }
+
+    public function getVideoFileUrlAttribute()
+    {
+        return $this->video_file ? $this->getFileUrl($this->video_file) : null;
     }
 }

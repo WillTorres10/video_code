@@ -4,22 +4,27 @@ namespace Tests\Feature\Models\Video;
 
 use App\Models\Video;
 use Illuminate\Database\Events\TransactionCommitted;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\{Event, Storage};
 use Tests\Exceptions\TestException;
+use Tests\Traits\TestUploadHooks;
+use Illuminate\Support\Facades\Config;
 
 class VideoUploadTest extends BaseVideoTestCase
 {
+    use TestUploadHooks;
+
+    protected function getModel()
+    {
+        return Video::class;
+    }
+
     public function testCreateWithFiles()
     {
         Storage::fake();
-        $video = Video::create($this->data + [
-            'thumb_file' => UploadedFile::fake()->create('thumb.jpg'),
-            'video_file' => UploadedFile::fake()->create('video.mp4')
-        ]);
-        Storage::assertExists("{$video->id}/{$video->thumb_file}");
-        Storage::assertExists("{$video->id}/{$video->video_file}");
+        $video = Video::create($this->data + $this->generateArrayFilesUploadForModel());
+        foreach (Video::$fileFields as $field) {
+            Storage::assertExists("{$video->id}/{$video->{$field}}");
+        }
     }
 
     public function testCreateIfRollbackFiles()
@@ -29,10 +34,7 @@ class VideoUploadTest extends BaseVideoTestCase
         $hasError = false;
 
         try {
-            Video::create($this->data + [
-                'thumb_file' => UploadedFile::fake()->create('thumb.jpg'),
-                'video_file' => UploadedFile::fake()->create('video.mp4')
-            ]);
+            Video::create($this->data + $this->generateArrayFilesUploadForModel());
         } catch (TestException $e) {
             $this->assertCount(0, Storage::allFiles());
             $hasError = true;
@@ -45,21 +47,18 @@ class VideoUploadTest extends BaseVideoTestCase
     {
         Storage::fake();
         $video = Video::factory()->create();
-        $thumbFile = UploadedFile::fake()->create('thumb.jpg');
-        $videoFile = UploadedFile::fake()->create('video.mp4');
-        $video->update($this->data + [
-            'thumb_file' => $thumbFile,
-            'video_file' => $videoFile
-        ]);
-        Storage::assertExists("{$video->id}/{$video->thumb_file}");
-        Storage::assertExists("{$video->id}/{$video->video_file}");
+        $files = $this->generateArrayFilesUploadForModel();
+        $video->update($this->data + $files);
+        foreach (Video::$fileFields as $field) {
+            Storage::assertExists("{$video->id}/{$video->{$field}}");
+        }
 
-        $newVideoFile = UploadedFile::fake()->create('video.mp4');
-        $video->update($this->data + ['video_file' => $newVideoFile]);
-
-        Storage::assertExists("{$video->id}/{$thumbFile->hashName()}");
-        Storage::assertExists("{$video->id}/{$newVideoFile->hashName()}");
-        Storage::assertMissing("{$video->id}/{$videoFile->hashName()}");
+        $files2 = $this->generateArrayFilesUploadForModel();
+        $video->update($this->data + $files2);
+        foreach (Video::$fileFields as $field) {
+            Storage::assertMissing("{$video->id}/{$files[$field]->hashName()}");
+            Storage::assertExists("{$video->id}/{$files2[$field]->hashName()}");
+        }
     }
 
     public function testUpdateIfRollbackFiles()
@@ -69,15 +68,50 @@ class VideoUploadTest extends BaseVideoTestCase
         Event::listen(TransactionCommitted::class, fn() => throw new TestException());
         $hasError = false;
         try {
-            $video->update($this->data + [
-                'thumb_file' => UploadedFile::fake()->create('thumb.jpg'),
-                'video_file' => UploadedFile::fake()->create('video.mp4')
-            ]);
+            $video->update($this->data + $this->generateArrayFilesUploadForModel());
         } catch (TestException $e) {
             $this->assertCount(0, Storage::allFiles());
             $hasError = true;
         }
 
         $this->assertTrue($hasError);
+    }
+
+    public function testFileUrlsWithLocalDriver()
+    {
+        $fileFields = [];
+        foreach (Video::$fileFields as $field) {
+            $fileFields[$field] = "$field.test";
+        }
+        $video = Video::factory()->create($fileFields);
+        $baseUrl = config('filesystems.disks.public')['url'];
+        foreach ($fileFields as $field => $value) {
+            $fileUrl = $video->{"{$field}_url"};
+            $this->assertEquals("{$baseUrl}/$video->id/$value", $fileUrl);
+        }
+    }
+
+    public function testFileUrlsWithS3Driver()
+    {
+        $fileFields = [];
+        foreach (Video::$fileFields as $field) {
+            $fileFields[$field] = "$field.test";
+        }
+        $video = Video::factory()->create($fileFields);
+        $baseUrl = config('filesystems.disks.s3.url');
+        Config::set('filesystems.default', 's3');
+        foreach ($fileFields as $field => $value) {
+            $fileUrl = $video->{"{$field}_url"};
+            $this->assertEquals("{$baseUrl}/$video->id/$value", $fileUrl);
+        }
+    }
+
+    public function testFileUrlsIfNullWhenFieldsAreNull()
+    {
+        $video = Video::factory()->create();
+        foreach (Video::$fileFields as $field) {
+            $fileUrl = $video->{"{$field}_url"};
+            $this->assertNull($fileUrl);
+        }
     }
 }

@@ -5,9 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\Video;
 use App\Rules\ValidateCategoriesOfGenres;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use phpDocumentor\Reflection\Types\This;
 
 class VideoController extends BasicCrudController
 {
@@ -25,6 +23,7 @@ class VideoController extends BasicCrudController
             'categories_id' => ['required', 'array', 'exists:categories,id', new ValidateCategoriesOfGenres],
             'genres_id' => ['required', 'array', 'exists:genres,id'],
         ];
+        $this->rules += Video::validationRulesFiles();
     }
 
     public function store(Request $request)
@@ -52,9 +51,7 @@ class VideoController extends BasicCrudController
 
     protected function rulesStore()
     {
-        return $this->rules + [
-            'video_file' => ['nullable', 'file', 'mimetypes:video/mp4', 'max:20000']
-        ];
+        return $this->rules;
     }
 
     protected function rulesUpdate()
