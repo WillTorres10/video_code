@@ -2,7 +2,7 @@
 
 namespace App\Models\DTOs;
 
-use \Spatie\DataTransferObject\DataTransferObject;
+use Spatie\DataTransferObject\DataTransferObject;
 
 class FileRulesValidation extends DataTransferObject
 {
