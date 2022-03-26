@@ -53,4 +53,55 @@ class VideoControllerUploadTest extends BaseVideoControllerTestCase
         }
     }
 
+    public function testUploadFileOnUpdateWithoutExistingFile()
+    {
+        Storage::fake();
+        $generated = $this->generateGenresWithCategories();
+        $data = $this->sendData + $this->selectGenresAndCategories($generated);
+        $data += $this->generateArrayFilesUploadForModel();
+        $toTest = $this->sendData;
+        foreach (Video::$fileFields as $field) {
+            $toTest[$field] = $data[$field]->hashName();
+        }
+        $this->assertUpdate($data, $toTest);
+        foreach (Video::$fileFields as $field) {
+            Storage::assertExists("{$this->video->id}/{$toTest[$field]}");
+        }
+    }
+
+    public function testUploadFileOnUpdateWithExistingFile()
+    {
+        // Setting file for the first time
+        Storage::fake();
+        $generated = $this->generateGenresWithCategories();
+        $data = $this->sendData + $this->selectGenresAndCategories($generated);
+        $data += $this->generateArrayFilesUploadForModel();
+        $toTest = $this->sendData;
+        foreach (Video::$fileFields as $field) {
+            $toTest[$field] = $data[$field]->hashName();
+        }
+        $this->assertUpdate($data, $toTest);
+        foreach (Video::$fileFields as $field) {
+            Storage::assertExists("{$this->video->id}/{$toTest[$field]}");
+        }
+        // Updating existing files
+        $toUpdate = [
+            'title' => 'title updated',
+            'description' => 'description updated',
+            'year_launched' => 2011,
+            'rating' => Video::RATING_LIST[1],
+            'duration' => 95,
+        ];
+        $data2 = $toUpdate + $this->selectGenresAndCategories($generated);
+        $data2 += $this->generateArrayFilesUploadForModel();
+        $toTest2 = $toUpdate;
+        foreach (Video::$fileFields as $field) {
+            $toTest2[$field] = $data2[$field]->hashName();
+        }
+        $this->assertUpdate($data2, $toTest2);
+        foreach (Video::$fileFields as $field) {
+            Storage::assertMissing("{$this->video->id}/{$toTest[$field]}");
+            Storage::assertExists("{$this->video->id}/{$toTest2[$field]}");
+        }
+    }
 }

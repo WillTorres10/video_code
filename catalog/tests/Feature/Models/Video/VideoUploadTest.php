@@ -51,7 +51,7 @@ class VideoUploadTest extends BaseVideoTestCase
         Storage::fake();
         $video = Video::factory()->create();
         $files = $this->generateArrayFilesUploadForModel();
-        $video->update($this->data + $files);
+        $video->update($this->data + ['opened' => false] + $files);
         $fileFieldsData = [];
         foreach (Video::$fileFields as $field) {
             $fileFieldsData[$field] = $video->{$field};
