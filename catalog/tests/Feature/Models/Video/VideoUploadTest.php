@@ -43,22 +43,33 @@ class VideoUploadTest extends BaseVideoTestCase
         $this->assertTrue($hasError);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function testUpdateWithFiles()
     {
         Storage::fake();
         $video = Video::factory()->create();
         $files = $this->generateArrayFilesUploadForModel();
-        $video->update($this->data + $files);
+        $video->update($this->data + ['opened' => false] + $files);
+        $fileFieldsData = [];
         foreach (Video::$fileFields as $field) {
-            Storage::assertExists("{$video->id}/{$video->{$field}}");
+            $fileFieldsData[$field] = $video->{$field};
+            Storage::assertExists("{$video->id}/{$fileFieldsData[$field]}");
         }
+        $video->refresh();
+        $this->assertDatabaseHas('videos', $this->data + $fileFieldsData + ['id' => $video->id, 'opened' => false]);
 
         $files2 = $this->generateArrayFilesUploadForModel();
-        $video->update($this->data + $files2);
+        $video->update($this->data + ['opened' => true] + $files2);
+        $this->assertTrue($video->opened);
+        $fileFieldsData2 = [];
         foreach (Video::$fileFields as $field) {
+            $fileFieldsData2[$field] = $files2[$field]->hashName();
             Storage::assertMissing("{$video->id}/{$files[$field]->hashName()}");
             Storage::assertExists("{$video->id}/{$files2[$field]->hashName()}");
         }
+        $this->assertDatabaseHas('videos', $this->data + $fileFieldsData2 + ['id' => $video->id, 'opened' => true]);
     }
 
     public function testUpdateIfRollbackFiles()
