@@ -16,7 +16,7 @@ services:
 
   nginx:
     container_name: video-code-nginx
-    image: nginx:1.21
+    image: nginx:latest
     volumes:
       - ./catalog:/var/www/
       - ./.docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
@@ -27,7 +27,7 @@ services:
 
   bd:
     container_name: video-code-mysql
-    image: mysql:8
+    image: mysql:latest
     volumes:
       - mysql:/var/lib/mysql
       - ./.docker/mysql:/docker-entrypoint-initdb.d/
