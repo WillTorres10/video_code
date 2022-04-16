@@ -14,8 +14,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        Category::factory(20)->create();
-        Genre::factory(15)->create();
-        Video::factory(100)->create();
+        $this->call(CategoriesTableSeeder::class);
+        $this->call(GenresTableSeeder::class);
+        $this->call(CastMembersTableSeeder::class);
+        $this->call(VideosTableSeeder::class);
     }
 }
