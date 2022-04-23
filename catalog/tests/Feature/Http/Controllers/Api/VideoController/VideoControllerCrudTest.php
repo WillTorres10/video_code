@@ -2,25 +2,46 @@
 
 namespace Tests\Feature\Http\Controllers\Api\VideoController;
 
+use App\Http\Resources\VideoResource;
 use App\Models\Video;
+use Tests\Traits\TestResources;
 
 
 class VideoControllerCrudTest extends BaseVideoControllerTestCase
 {
+    use TestResources;
+
+    protected function getModel()
+    {
+        return Video::class;
+    }
+
     public function testIndex()
     {
         $response = $this->json('GET', route('video.index'));
         $response
             ->assertStatus(200)
-            ->assertJson([$this->video->toArray()]);
+            ->assertJson(['meta' => ['per_page' => 15]])
+            ->assertJsonStructure([
+                'data' => ['*' => $this->serializedFields],
+                'links' => [],
+                'meta' => []
+            ]);
+        $this->video->load(['categories', 'genres']);
+        $this->videoCompleto->load(['categories', 'genres']);
+        $resource = VideoResource::collection(collect([$this->videoCompleto, $this->video]));
+        $this->assertResource($response, $resource);
     }
 
     public function testShow()
     {
-        $response = $this->json('GET', route('video.show', ['video' => $this->video->id]));
-        $response
-            ->assertStatus(200)
-            ->assertJson($this->video->toArray());
+        foreach ([$this->video, $this->videoCompleto] as $video) {
+            $response = $this->json('GET', route('video.show', ['video' => $video->id]));
+            $response
+                ->assertStatus(200)
+                ->assertJsonStructure(['data' => $this->serializedFields]);
+            $this->assertVideoResource($response);
+        }
     }
 
     public function testInvalidationRequired()
@@ -131,8 +152,9 @@ class VideoControllerCrudTest extends BaseVideoControllerTestCase
         ];
         foreach ($data as $value) {
             $response = $this->assertStore($value['send_data'], $value['test_data']);
-            $response->assertJsonStructure(['created_at', 'updated_at', 'deleted_at']);
-            $this->assertUpdate($value['send_data'], $value['test_data'] + $this->nullFields);
+            $this->assertVideoResource($response);
+            $response = $this->assertUpdate($value['send_data'], $value['test_data']);
+            $this->assertVideoResource($response);
         }
     }
 

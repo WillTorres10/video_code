@@ -31,6 +31,8 @@ class Video extends Model
         'duration' => 'integer'
     ];
 
+    protected $appends = ['thumb_file_url', 'banner_file_url', 'trailer_file_url', 'video_file_url'];
+
     /**
      * @throws \Spatie\DataTransferObject\Exceptions\UnknownProperties
      */

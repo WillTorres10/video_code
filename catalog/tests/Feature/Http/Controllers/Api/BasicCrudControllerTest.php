@@ -32,7 +32,14 @@ class BasicCrudControllerTest extends TestCase
 
     public function testIndex()
     {
-        $this->assertEquals([$this->category->toArray()], $this->controller->index()->toArray());
+        $resource = $this->controller->index();
+        $serialized = $resource->response()->getData(true);
+        $this->assertEquals(
+            [$this->category->toArray()],
+            $serialized['data']
+        );
+        $this->assertArrayHasKey('meta', $serialized);
+        $this->assertArrayHasKey('links', $serialized);
     }
 
     public function testInvalidationDataInStore()
@@ -53,11 +60,9 @@ class BasicCrudControllerTest extends TestCase
             ->shouldReceive('all')
             ->once()
             ->andReturn(['name' => 'test_name', 'description' => 'test_description']);
-        $obj = $this->controller->store($request);
-        $this->assertEquals(
-            CategoryStub::find(2)->toArray(),
-            $obj->toArray()
-        );
+        $resource = $this->controller->store($request);
+        $serialized = $resource->response()->getData(true);
+        $this->assertEquals( CategoryStub::find(2)->toArray(), $serialized['data']);
     }
 
     public function testIfFindOrFailFetchModel()
@@ -83,8 +88,9 @@ class BasicCrudControllerTest extends TestCase
 
     public function testShowWhenHasTheModel()
     {
-        $result = $this->controller->show($this->category->id);
-        $this->assertEquals($this->category->toArray(), $result->toArray());
+        $resource = $this->controller->show($this->category->id);
+        $serialized = $resource->response()->getData(true);
+        $this->assertEquals($this->category->toArray(), $serialized['data']);
     }
 
     public function testShowWhenHasntTheModel()
@@ -111,10 +117,10 @@ class BasicCrudControllerTest extends TestCase
             ->shouldReceive('all')
             ->once()
             ->andReturn(['name' => 'name_updated']);
-        $result = $this->controller->update($request, $this->category->id);
+        $resource = $this->controller->update($request, $this->category->id);
+        $serialized = $resource->response()->getData(true);
         $this->category->refresh();
-
-        $this->assertEquals($result->toArray(), $this->category->toArray());
+        $this->assertEquals($serialized['data'], $this->category->toArray());
     }
 
     public function testDestroy()

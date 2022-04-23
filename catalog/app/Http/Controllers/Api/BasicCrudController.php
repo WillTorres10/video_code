@@ -4,19 +4,36 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Http\{Request, Response};
+use Illuminate\Http\{Request, Resources\Json\ResourceCollection, Response};
 
 abstract class BasicCrudController extends Controller
 {
+    protected $paginationSize = 15;
+
     abstract protected function model();
 
     abstract protected function rulesStore();
 
     abstract protected function rulesUpdate();
 
+    abstract protected function resource();
+
+    abstract protected function resourceCollection();
+
+    abstract protected function relationshipsToLoad():array;
+
     public function index()
     {
-        return $this->model()::all();
+        $data = !$this->paginationSize
+            ? $this->model()::with($this->relationshipsToLoad())->all()
+            : $this->model()::with($this->relationshipsToLoad())->paginate($this->paginationSize);
+
+        $resourceCollectionClass = $this->resourceCollection();
+        $refClass = new \ReflectionClass($resourceCollectionClass);
+
+        return $refClass->isSubclassOf(ResourceCollection::class)
+            ? new $resourceCollectionClass($data)
+            : $resourceCollectionClass::collection($data);
     }
 
     /**
@@ -27,7 +44,8 @@ abstract class BasicCrudController extends Controller
         $validatedData = $this->validate($request, $this->rulesStore());
         $obj = $this->model()::create($validatedData);
         $obj->refresh();
-        return $obj;
+        $resource = $this->resource();
+        return new $resource($obj);
     }
 
     protected function findOrFail($id)
@@ -39,7 +57,9 @@ abstract class BasicCrudController extends Controller
 
     public function show($id)
     {
-        return $this->findOrFail($id);
+        $obj = $this->findOrFail($id);
+        $resource = $this->resource();
+        return new $resource($obj);
     }
 
     /**
@@ -50,7 +70,9 @@ abstract class BasicCrudController extends Controller
         $model = $this->findOrFail($id);
         $validatedData = $this->validate($request, $this->rulesUpdate());
         $model->update($validatedData);
-        return $model->refresh();
+        $model->refresh();
+        $resource = $this->resource();
+        return new $resource($model);
     }
 
     public function destroy($id): Response

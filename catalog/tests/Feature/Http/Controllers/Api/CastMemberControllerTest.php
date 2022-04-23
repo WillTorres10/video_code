@@ -2,15 +2,17 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Http\Resources\CastMemberResource;
 use App\Models\CastMember;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Testing\TestResponse;
 use Illuminate\Validation\Rule;
 use Tests\TestCase;
-use Tests\Traits\{TestSaves, TestValidations};
+use Tests\Traits\{TestResources, TestSaves, TestValidations};
 
 class CastMemberControllerTest extends TestCase
 {
-    use DatabaseMigrations, TestSaves, TestValidations;
+    use DatabaseMigrations, TestSaves, TestValidations, TestResources;
 
     private CastMember $castMember;
 
@@ -18,6 +20,8 @@ class CastMemberControllerTest extends TestCase
     private array $validActorData = [ 'name' => 'bbbbb', 'type' => CastMember::TYPE_ACTOR ];
 
     private string $stringWith256;
+
+    private $serializedFields = ['id', 'name', 'type', 'updated_at', 'created_at', 'deleted_at'];
 
     protected function setUp(): void
     {
@@ -47,7 +51,14 @@ class CastMemberControllerTest extends TestCase
             ->json('GET', route('caster_member.index'));
         $response
             ->assertStatus(200)
-            ->assertJson([$this->castMember->toArray()]);
+            ->assertJson(['meta' => ['per_page' => 15]])
+            ->assertJsonStructure([
+                'data' => ['*' => $this->serializedFields],
+                'links' => [],
+                'meta' => []
+            ]);
+        $resource = CastMemberResource::collection(collect([$this->castMember]));
+        $this->assertResource($response, $resource);
     }
 
     public function testShow()
@@ -56,7 +67,8 @@ class CastMemberControllerTest extends TestCase
             ->json('GET', route('caster_member.show', ['caster_member'=>$this->castMember->id]));
         $response
             ->assertStatus(200)
-            ->assertJson($this->castMember->toArray());
+            ->assertJsonStructure(['data' => $this->serializedFields]);
+        $this->assertCastMemberResource($response);
     }
 
     public function testInvalidationDataCreation()
@@ -77,13 +89,22 @@ class CastMemberControllerTest extends TestCase
 
     public function testStore()
     {
-        $this->assertStore($this->validActorData, $this->validActorData + ['deleted_at' => null]);
+        $response = $this->assertStore($this->validActorData, $this->validActorData + ['deleted_at' => null]);
+        $response->assertJsonStructure(['data' => $this->serializedFields]);
+        $this->assertCastMemberResource($response);
     }
 
     public function testUpdate()
     {
         $this->castMember = CastMember::factory(1)->create($this->validDirectorData)->first();
         $response = $this->assertUpdate($this->validActorData, $this->validActorData + ['deleted_at'=>null]);
-        $response->assertJsonStructure(['created_at', 'updated_at']);
+        $response->assertJsonStructure(['data' => $this->serializedFields]);
+        $this->assertCastMemberResource($response);
+    }
+
+    private function assertCastMemberResource(TestResponse $response)
+    {
+        $cast_member = CastMember::findOrFail($response->json('data.id'));
+        $this->assertResource($response, (new CastMemberResource($cast_member)));
     }
 }
